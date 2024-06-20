@@ -1,0 +1,41 @@
+# 工作流名称
+name: Container-Image-Sync
+# 工作流运行时显示名称
+run-name: ${{ github.actor }} Container Image Sync
+# 怎样触发工作流
+on:
+  push:
+    branches: [ "develop" ]
+  pull_request:
+    branches: [ "develop" ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  syncimages:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Repos
+      uses: actions/checkout@v3
+      
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2.9.1
+
+    - name: Login to Docker Hub
+      uses: docker/login-action@v3.2.0
+      with:
+        registry: registry.cn-hangzhou.aliyuncs.com
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+        logout: true
+        
+    - name: Use Skopeo Tools Sync Image to Docker Hub
+      run: |
+        #!/usr/bin/env bash
+        skopeo copy \
+        docker://docker.io/node/node:22.3.0-alpine3.20 \
+        docker://registry.cn-hangzhou.aliyuncs.com/luck-dog/luck/node:22.3.0-alpine3.20
+
+        
